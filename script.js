@@ -1,9 +1,10 @@
-console.log("Collision on scale of 1px = 1m!");
+console.log(
+  "Collision on scale of 1px = 1m which will lead to a test of human sense!"
+);
 
 const canvas = document.querySelector("canvas");
 const tooltip = canvas.getContext("2d");
 
-// Set canvas dimensions
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
