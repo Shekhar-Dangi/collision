@@ -15,13 +15,28 @@ function getRandomColor() {
 }
 
 class Ball {
-  constructor(x, vx, mass, radius) {
+  #vx;
+  constructor(x, vx, mass, radius, textPosition, label) {
     this.x = x;
-    this.vx = vx;
+    this.#vx = vx;
     this.mass = mass;
     this.radius = radius;
-    tooltip.fillStyle = getRandomColor();
+    this.color = getRandomColor();
+    this.textPosition = textPosition;
+    this.label = label;
     tooltip.font = `${this.radius * 0.4}px Arial`;
+  }
+
+  getVelocity() {
+    return this.#vx;
+  }
+  setVelocity(velocity) {
+    this.#vx = velocity;
+    tooltip.fillText(
+      `${this.label} : ${this.#vx.toFixed(1)} m/s`,
+      100,
+      this.textPosition
+    );
   }
 
   collisionToWall() {
@@ -29,25 +44,31 @@ class Ball {
   }
 
   collisionToBall(ball) {
-    return Math.abs(ball.x - this.x) <= ball.radius + this.radius;
+    return this.distanceToBall(ball) <= this.radius + ball.radius;
   }
 
   distanceToBall(ball) {
-    return Math.abs(ball.x - this.x);
+    return Math.abs(this.x - ball.x);
   }
+
   processCollision(ball) {
+    let overlap = this.radius + ball.radius - this.distanceToBall(ball);
+    let direction = Math.sign(ball.x - this.x);
+    this.x -= overlap * direction;
     let final1 =
-      ((this.mass - ball.mass) / (this.mass + ball.mass)) * this.vx +
-      ((2 * ball.mass) / (this.mass + ball.mass)) * ball.vx;
+      ((this.mass - ball.mass) / (this.mass + ball.mass)) * this.#vx +
+      ((2 * ball.mass) / (this.mass + ball.mass)) * ball.#vx;
     let final2 =
-      ((2 * this.mass) / (this.mass + ball.mass)) * this.vx +
-      ((ball.mass - this.mass) / (this.mass + ball.mass)) * ball.vx;
-    this.vx = final1;
-    ball.vx = final2;
+      ((2 * this.mass) / (this.mass + ball.mass)) * this.#vx +
+      ((ball.mass - this.mass) / (this.mass + ball.mass)) * ball.#vx;
+    this.setVelocity(final1);
+    ball.setVelocity(final2);
+    console.log(final1, final2);
   }
 
   draw() {
     tooltip.beginPath();
+    tooltip.fillStyle = this.color;
     tooltip.arc(
       this.x,
       canvas.height - this.radius,
@@ -59,17 +80,49 @@ class Ball {
     tooltip.fill();
     tooltip.fillStyle = "black";
     tooltip.stroke();
-    tooltip.fillText(
-      `${this.vx} m/s`,
-      this.x - this.radius / 1.5,
-      canvas.height - this.radius,
-      2 * this.radius
-    );
+    this.setVelocity(this.#vx);
     tooltip.closePath();
+  }
+
+  update(ball) {
+    if (this.radius != ball.radius) {
+      alert("Switch to 2d collision!");
+    }
+    if (this.collisionToWall()) {
+      console.log("wall collision");
+      this.setVelocity(-this.#vx);
+    }
+    if (ball.collisionToWall()) {
+      console.log("wall collision");
+      ball.setVelocity(-ball.#vx);
+    }
+    if (this.collisionToBall(ball)) {
+      // alert(`Collision! from ${this.label}`);
+      this.processCollision(ball);
+    }
+    this.draw();
+    ball.draw();
+
+    this.x += this.#vx;
+    ball.x += ball.getVelocity();
   }
 }
 
-const b1 = new Ball(350, 10, 2, 100);
-b1.draw();
-const b2 = new Ball(150, 0, 3, 100);
-b2.draw();
+const b1 = new Ball(150, 0, 0.2, 50, 100, "b1");
+// b1.draw();
+const b2 = new Ball(300, -3, 3, 50, 200, "b2");
+// b2.draw();
+
+function animate() {
+  tooltip.clearRect(0, 0, innerWidth, innerHeight);
+  b2.update(b1);
+
+  // alert(
+  //   `x1 : ${b1.x}, x2 : ${b2.x}, distance : ${b1.distanceToBall(
+  //     b2
+  //   )}, radius sum : ${b1.radius + b2.radius}`
+  // );
+  // requestAnimationFrame(animate);
+}
+
+animate();
