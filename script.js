@@ -122,7 +122,7 @@ function animate() {
   //     b2
   //   )}, radius sum : ${b1.radius + b2.radius}`
   // );
-  // requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 }
 
 animate();
